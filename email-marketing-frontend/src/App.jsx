@@ -1,18 +1,19 @@
 import React from 'react';
-import './App.css';
-import { FlowchartProvider } from './flowchartContext';
-import Flowchart from './components/Flowchart';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Dashboard from './pages/Dashboard';
+import FlowBuilder from './pages/FlowBuilder';
+import Header from './components/Header';
 
 function App() {
   return (
-    <FlowchartProvider>
-      <div className="App">
-        <h1>Email Marketing Flowchart</h1>
-        <Flowchart />
-      </div>
-    </FlowchartProvider>
+    <Router>
+      <Header />
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/flow-builder" element={<FlowBuilder />} />
+      </Routes>
+    </Router>
   );
 }
 
 export default App;
-

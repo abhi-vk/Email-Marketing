@@ -1,30 +1,31 @@
 const Agenda = require('agenda');
-const mongoose = require('mongoose');
 
 // Set up Agenda with MongoDB as the storage
 const agenda = new Agenda({
-  db: { address: 'mongodb://localhost:27017/emailMarketing', collection: 'agendaJobs' },
+  db: { address: process.env.MONGO_URI || 'mongodb://localhost:27017/emailMarketing', collection: 'agendaJobs' },
+  processEvery: '30 seconds',
+  maxConcurrency: 20,
 });
 
-// Define a job to send emails
-agenda.define('send email', async (job) => {
+// Define a job to send emails with retry logic
+agenda.define('send email', { priority: 'high', concurrency: 5 }, async (job) => {
   const { to, subject, body } = job.attrs.data;
-  
-  // Nodemailer setup (this will be defined in the emailController)
+
   const nodemailer = require('nodemailer');
-  
+  require('dotenv').config(); // Load environment variables
+
   let transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-      user: 'your-email@gmail.com', // Replace with your email
-      pass: 'your-email-password', // Replace with your email password
+      user: process.env.EMAIL_USER, // Use environment variable
+      pass: process.env.EMAIL_PASS, // Use environment variable
     },
   });
-  
+
   let mailOptions = {
-    from: 'your-email@gmail.com', // Replace with your email
-    to: to,
-    subject: subject,
+    from: process.env.EMAIL_USER, // Use the sender email from env
+    to,
+    subject,
     text: body,
   };
 
@@ -33,6 +34,7 @@ agenda.define('send email', async (job) => {
     console.log('Email sent successfully');
   } catch (err) {
     console.error('Error sending email:', err);
+    throw new Error('Failed to send email');
   }
 });
 
